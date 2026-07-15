@@ -71,16 +71,28 @@ All endpoints across the system adhere to a single, standardized JSON response s
 
 ## Running the Services
 
-You can run the services manually. Make sure your virtual environment is activated.
+You can run the services using Docker Compose or manually.
 
-### 1. Start the Account Service (Internal)
+### Option 1: Docker Compose (Recommended)
+This will start both services together with the correct network and environment bindings.
+```bash
+docker-compose up --build
+```
+- Event Gateway will be available at: `http://localhost:8000`
+- Account Service will be available at: `http://localhost:8001`
+
+### Option 2: Run Manually
+
+Make sure your virtual environment is activated.
+
+**1. Start the Account Service (Internal)**
 In a new terminal window:
 ```bash
 # Starts on port 8001
 uvicorn account_service.main:app --port 8001 --reload
 ```
 
-### 2. Start the Event Gateway API (Public)
+**2. Start the Event Gateway API (Public)**
 In another terminal window:
 ```bash
 # Starts on port 8000
