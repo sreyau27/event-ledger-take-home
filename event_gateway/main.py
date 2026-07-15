@@ -37,3 +37,4 @@ from shared.schemas import APIResponse
 def health_check():
     return APIResponse(success=True, data={"status": "up", "service": "event_gateway"})
 
+app.include_router(gateway_router)
