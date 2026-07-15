@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 from account_service.models import Transaction
 
@@ -13,6 +14,8 @@ class TransactionRepository:
         query = self.db.query(Transaction).filter(Transaction.account_id == account_id)
         if order_by_desc:
             query = query.order_by(Transaction.event_timestamp.desc())
+        else:
+            query = query.order_by(Transaction.event_timestamp.asc())
         if limit:
             query = query.limit(limit)
         return query.all()
@@ -26,6 +29,10 @@ class TransactionRepository:
             currency=currency,
             event_timestamp=event_timestamp
         )
-        self.db.add(new_tx)
-        self.db.commit()
-        return new_tx
+        try:
+            self.db.add(new_tx)
+            self.db.commit()
+            return new_tx, True
+        except IntegrityError:
+            self.db.rollback()
+            return self.get_by_event_id(event_id), False

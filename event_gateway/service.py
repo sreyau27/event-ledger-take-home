@@ -43,20 +43,24 @@ class EventGatewayService:
             return e.response.json()
 
     async def process_event(self, payload: EventPayload, trace_id: str):
-        existing_event = self.repo.get_by_event_id(payload.eventId)
-        if existing_event:
-            logger.info(f"Idempotency hit: Event {payload.eventId} already exists.")
-            return {"status": "duplicate", "eventId": payload.eventId, "message": "Event already processed"}
-
-        await self.call_account_service(payload, trace_id)
+        account_response = await self.call_account_service(payload, trace_id)
         
-        self.repo.create(
+        if isinstance(account_response, dict) and not account_response.get("success", True):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=400, detail=account_response.get("message", "Account Service rejected the event"))
+            
+        event, created = self.repo.create(
             event_id=payload.eventId,
             account_id=payload.accountId,
             payload_json=payload.model_dump_json(),
             received_at=datetime.now(timezone.utc),
             event_timestamp=payload.eventTimestamp
         )
+        
+        if not created:
+            logger.info(f"Idempotency hit: Event {payload.eventId} already exists.")
+            return {"status": "duplicate", "eventId": payload.eventId, "message": "Event already processed"}
+
         logger.info(f"Event {payload.eventId} processed and saved.")
         return {"status": "success", "eventId": payload.eventId}
 

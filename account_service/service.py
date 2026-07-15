@@ -6,11 +6,7 @@ class AccountServiceLogic:
         self.repo = repo
 
     def process_transaction(self, event_id: str, account_id: str, tx_type: str, amount: float, currency: str, event_time: datetime):
-        existing_tx = self.repo.get_by_event_id(event_id)
-        if existing_tx:
-            return {"status": "duplicate", "eventId": event_id}
-            
-        self.repo.create(
+        tx, created = self.repo.create(
             event_id=event_id,
             account_id=account_id,
             tx_type=tx_type,
@@ -18,6 +14,10 @@ class AccountServiceLogic:
             currency=currency,
             event_timestamp=event_time
         )
+        
+        if not created:
+            return {"status": "duplicate", "eventId": event_id}
+            
         return {"status": "success", "eventId": event_id}
 
     def calculate_balance(self, account_id: str) -> float:
@@ -32,7 +32,7 @@ class AccountServiceLogic:
 
     def get_account_details(self, account_id: str):
         balance = self.calculate_balance(account_id)
-        recent_txs = self.repo.get_by_account_id(account_id, limit=10, order_by_desc=True)
+        recent_txs = self.repo.get_by_account_id(account_id, limit=10, order_by_desc=False)
         
         return {
             "accountId": account_id,

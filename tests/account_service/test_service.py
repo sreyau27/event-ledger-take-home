@@ -4,7 +4,7 @@ from account_service.service import AccountServiceLogic
 
 def test_process_transaction_new():
     repo_mock = Mock()
-    repo_mock.get_by_event_id.return_value = None
+    repo_mock.create.return_value = (Mock(), True)
     
     svc = AccountServiceLogic(repo_mock)
     dt = datetime.now(timezone.utc)
@@ -22,14 +22,14 @@ def test_process_transaction_new():
 
 def test_process_transaction_duplicate():
     repo_mock = Mock()
-    repo_mock.get_by_event_id.return_value = Mock() # returning anything truthy
+    repo_mock.create.return_value = (Mock(), False)
     
     svc = AccountServiceLogic(repo_mock)
     dt = datetime.now(timezone.utc)
     result = svc.process_transaction("evt-1", "acc-1", "CREDIT", 100.0, "USD", dt)
     
     assert result == {"status": "duplicate", "eventId": "evt-1"}
-    repo_mock.create.assert_not_called()
+    repo_mock.create.assert_called_once()
 
 def test_calculate_balance():
     repo_mock = Mock()
@@ -60,4 +60,4 @@ def test_get_account_details():
     assert details["recentTransactions"][0]["eventTimestamp"] == "2026-05-15T00:00:00"
     
     # Check that repo was called with limit and order_by_desc for the recent txs fetch
-    repo_mock.get_by_account_id.assert_any_call("acc-1", limit=10, order_by_desc=True)
+    repo_mock.get_by_account_id.assert_any_call("acc-1", limit=10, order_by_desc=False)

@@ -20,24 +20,28 @@ def payload():
 @pytest.mark.anyio
 async def test_process_event_duplicate(payload):
     repo_mock = Mock()
-    repo_mock.get_by_event_id.return_value = Mock()
+    repo_mock.create.return_value = (Mock(), False)
     
     http_mock = AsyncMock()
+    response_mock = Mock()
+    response_mock.json.return_value = {"success": True, "data": {"status": "duplicate"}}
+    http_mock.post.return_value = response_mock
+    
     svc = EventGatewayService(repo_mock, http_mock)
     
     result = await svc.process_event(payload, "trace-123")
     assert result == {"status": "duplicate", "eventId": "evt-1", "message": "Event already processed"}
-    http_mock.post.assert_not_called()
-    repo_mock.create.assert_not_called()
+    http_mock.post.assert_called_once()
+    repo_mock.create.assert_called_once()
 
 @pytest.mark.anyio
 async def test_process_event_success(payload):
     repo_mock = Mock()
-    repo_mock.get_by_event_id.return_value = None
+    repo_mock.create.return_value = (Mock(), True)
     
     http_mock = AsyncMock()
     response_mock = Mock()
-    response_mock.json.return_value = {"status": "success", "eventId": "evt-1"}
+    response_mock.json.return_value = {"success": True, "status": "success", "eventId": "evt-1"}
     response_mock.raise_for_status = Mock()
     http_mock.post.return_value = response_mock
     

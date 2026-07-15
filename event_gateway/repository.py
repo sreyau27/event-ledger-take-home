@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 from event_gateway.models import EventRecord
 
@@ -20,6 +21,10 @@ class EventRepository:
             received_at=received_at,
             event_timestamp=event_timestamp
         )
-        self.db.add(new_event)
-        self.db.commit()
-        return new_event
+        try:
+            self.db.add(new_event)
+            self.db.commit()
+            return new_event, True
+        except IntegrityError:
+            self.db.rollback()
+            return self.get_by_event_id(event_id), False
