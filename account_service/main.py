@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from shared.logging import setup_logger, trace_id_ctx_var
 from account_service.database import init_db
 from account_service.handler import router as account_router
-
+from shared.exceptions import add_global_exception_handlers
 from contextlib import asynccontextmanager
 
 logger = setup_logger("account_service")
@@ -14,6 +14,7 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(title="Account Service", lifespan=lifespan)
+add_global_exception_handlers(app)
 
 @app.middleware("http")
 async def trace_id_middleware(request: Request, call_next):

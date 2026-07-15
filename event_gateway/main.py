@@ -4,6 +4,7 @@ from shared.logging import setup_logger, trace_id_ctx_var
 from event_gateway.database import init_db
 from event_gateway.handler import router as gateway_router
 from event_gateway.handler import http_client
+from shared.exceptions import add_global_exception_handlers
 
 from contextlib import asynccontextmanager
 
@@ -17,6 +18,7 @@ async def lifespan(app: FastAPI):
     await http_client.aclose()
 
 app = FastAPI(title="Event Gateway API", lifespan=lifespan)
+add_global_exception_handlers(app)
 
 @app.middleware("http")
 async def trace_id_middleware(request: Request, call_next):
