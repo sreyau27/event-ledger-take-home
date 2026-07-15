@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from datetime import datetime
+from datetime import datetime, timezone
 from event_gateway.database import Base
 from event_gateway.repository import EventRepository
 
@@ -22,7 +22,7 @@ def repo(db_session):
     return EventRepository(db_session)
 
 def test_create_and_get_by_event_id(repo):
-    dt = datetime.utcnow()
+    dt = datetime.now(timezone.utc)
     repo.create("evt-1", "acc-1", '{"type": "CREDIT"}', dt, dt)
     
     event = repo.get_by_event_id("evt-1")
@@ -32,7 +32,7 @@ def test_create_and_get_by_event_id(repo):
     assert event.payload_json == '{"type": "CREDIT"}'
 
 def test_list_events(repo):
-    dt = datetime.utcnow()
+    dt = datetime.now(timezone.utc)
     repo.create("evt-1", "acc-1", '{"type": "CREDIT"}', dt, dt)
     repo.create("evt-2", "acc-1", '{"type": "DEBIT"}', dt, dt)
     repo.create("evt-3", "acc-2", '{"type": "CREDIT"}', dt, dt)

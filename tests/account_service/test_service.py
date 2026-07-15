@@ -1,5 +1,5 @@
 from unittest.mock import Mock
-from datetime import datetime
+from datetime import datetime, timezone
 from account_service.service import AccountServiceLogic
 
 def test_process_transaction_new():
@@ -7,7 +7,7 @@ def test_process_transaction_new():
     repo_mock.get_by_event_id.return_value = None
     
     svc = AccountServiceLogic(repo_mock)
-    dt = datetime.utcnow()
+    dt = datetime.now(timezone.utc)
     result = svc.process_transaction("evt-1", "acc-1", "CREDIT", 100.0, "USD", dt)
     
     assert result == {"status": "success", "eventId": "evt-1"}
@@ -25,7 +25,7 @@ def test_process_transaction_duplicate():
     repo_mock.get_by_event_id.return_value = Mock() # returning anything truthy
     
     svc = AccountServiceLogic(repo_mock)
-    dt = datetime.utcnow()
+    dt = datetime.now(timezone.utc)
     result = svc.process_transaction("evt-1", "acc-1", "CREDIT", 100.0, "USD", dt)
     
     assert result == {"status": "duplicate", "eventId": "evt-1"}

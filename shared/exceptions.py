@@ -31,7 +31,7 @@ def add_global_exception_handlers(app: FastAPI):
         trace_id = trace_id_ctx_var.get()
         logger.error(f"Validation error: {exc.errors()} | body: {exc.body}")
         return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             content={
                 "success": False,
                 "data": None,
