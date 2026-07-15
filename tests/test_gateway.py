@@ -4,7 +4,7 @@ from shared.schemas import EventPayload
 import pytest
 from unittest.mock import patch, AsyncMock
 import httpx
-from event_gateway.main import AccountServiceUnavailable
+from event_gateway.service import AccountServiceUnavailable
 
 client = TestClient(app)
 
@@ -17,7 +17,7 @@ def test_health_check():
     assert response.status_code == 200
     assert response.json() == {"status": "up", "service": "event_gateway"}
 
-@patch('event_gateway.main.call_account_service')
+@patch('event_gateway.service.EventGatewayService.call_account_service')
 def test_submit_event_success(mock_call):
     mock_call.return_value = {"status": "success"}
     
@@ -39,7 +39,7 @@ def test_submit_event_success(mock_call):
     assert response2.status_code == 201 # Idempotent request returns OK
     assert response2.json()["status"] == "duplicate"
     
-@patch('event_gateway.main.call_account_service')
+@patch('event_gateway.service.EventGatewayService.call_account_service')
 def test_submit_event_service_unavailable(mock_call):
     mock_call.side_effect = AccountServiceUnavailable("Down")
     
