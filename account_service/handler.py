@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import datetime
 from shared.schemas import EventPayload
 from shared.logging import setup_logger
 from account_service.database import get_db

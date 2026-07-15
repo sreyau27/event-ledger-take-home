@@ -1,9 +1,7 @@
 from fastapi.testclient import TestClient
 from event_gateway.main import app, init_db
-from shared.schemas import EventPayload
 import pytest
-from unittest.mock import patch, AsyncMock
-import httpx
+from unittest.mock import patch
 from event_gateway.service import AccountServiceUnavailable
 
 client = TestClient(app)
