@@ -13,7 +13,7 @@ async def lifespan(app: FastAPI):
     logger.info("Account Service started and DB initialized.")
     yield
 
-app = FastAPI(title="Account Service", lifespan=lifespan)
+app = FastAPI(title="Account Service", lifespan=lifespan, docs_url="/docs", redoc_url="/redoc", openapi_url="/openapi.json")
 add_global_exception_handlers(app)
 
 @app.middleware("http")

@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
     yield
     await http_client.aclose()
 
-app = FastAPI(title="Event Gateway API", lifespan=lifespan)
+app = FastAPI(title="Event Gateway API", lifespan=lifespan, docs_url="/docs", redoc_url="/redoc", openapi_url="/openapi.json")
 add_global_exception_handlers(app)
 
 @app.middleware("http")
