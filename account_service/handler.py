@@ -9,6 +9,10 @@ from account_service.service import AccountServiceLogic
 logger = setup_logger("account_service")
 router = APIRouter()
 
+@router.get("/health", response_model=APIResponse)
+def health_check():
+    return APIResponse(success=True, data={"status": "up", "service": "account_service"})
+
 def get_account_service(db: Session = Depends(get_db)):
     repo = TransactionRepository(db)
     return AccountServiceLogic(repo)

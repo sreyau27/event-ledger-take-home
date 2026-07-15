@@ -12,6 +12,10 @@ from shared.schemas import APIResponse
 logger = setup_logger("event_gateway")
 router = APIRouter()
 
+@router.get("/health", response_model=APIResponse)
+def health_check():
+    return APIResponse(success=True, data={"status": "up", "service": "event_gateway"})
+
 http_client = httpx.AsyncClient()
 
 def get_gateway_service(db: Session = Depends(get_db)):

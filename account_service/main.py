@@ -23,10 +23,5 @@ async def trace_id_middleware(request: Request, call_next):
     response = await call_next(request)
     return response
 
-from shared.schemas import APIResponse
-
-@app.get("/health", response_model=APIResponse)
-def health_check():
-    return APIResponse(success=True, data={"status": "up", "service": "account_service"})
 
 app.include_router(account_router)
