@@ -5,18 +5,18 @@ from event_gateway.database import init_db
 from event_gateway.handler import router as gateway_router
 from event_gateway.handler import http_client
 
+from contextlib import asynccontextmanager
+
 logger = setup_logger("event_gateway")
 
-app = FastAPI(title="Event Gateway API")
-
-@app.on_event("startup")
-def on_startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     init_db()
     logger.info("Event Gateway started and DB initialized.")
-
-@app.on_event("shutdown")
-async def on_shutdown():
+    yield
     await http_client.aclose()
+
+app = FastAPI(title="Event Gateway API", lifespan=lifespan)
 
 @app.middleware("http")
 async def trace_id_middleware(request: Request, call_next):
