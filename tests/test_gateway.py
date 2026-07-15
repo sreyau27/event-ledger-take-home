@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 from event_gateway.main import app, init_db
 import pytest
 from unittest.mock import patch
-from event_gateway.service import AccountServiceUnavailable
+from shared.exceptions import AccountServiceUnavailable
 
 client = TestClient(app)
 
@@ -13,7 +13,8 @@ def setup_db():
 def test_health_check():
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "up", "service": "event_gateway"}
+    assert response.json()["success"] is True
+    assert response.json()["data"] == {"status": "up", "service": "event_gateway"}
 
 @patch('event_gateway.service.EventGatewayService.call_account_service')
 def test_submit_event_success(mock_call):
@@ -30,12 +31,14 @@ def test_submit_event_success(mock_call):
     
     response = client.post("/events", json=payload)
     assert response.status_code == 201
-    assert response.json()["eventId"] == "test-123"
+    assert response.json()["success"] is True
+    assert response.json()["data"]["eventId"] == "test-123"
     
     # Test Idempotency
     response2 = client.post("/events", json=payload)
     assert response2.status_code == 201 # Idempotent request returns OK
-    assert response2.json()["status"] == "duplicate"
+    assert response2.json()["success"] is True
+    assert response2.json()["data"]["status"] == "duplicate"
     
 @patch('event_gateway.service.EventGatewayService.call_account_service')
 def test_submit_event_service_unavailable(mock_call):
@@ -52,6 +55,7 @@ def test_submit_event_service_unavailable(mock_call):
     
     response = client.post("/events", json=payload)
     assert response.status_code == 503
+    assert response.json()["success"] is False
     assert response.json()["error"] == "Service Unavailable"
     assert response.json()["message"] == "Account Service is down"
 
@@ -67,3 +71,5 @@ def test_invalid_payload():
     
     response = client.post("/events", json=payload)
     assert response.status_code == 422 # FastAPI validation error
+    assert response.json()["success"] is False
+    assert response.json()["error"] == "Validation Error"

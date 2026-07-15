@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from shared.schemas import EventPayload
-from shared.logging import setup_logger
+from shared.schemas import EventPayload, APIResponse
+from shared.logging import setup_logger, trace_id_ctx_var
 from account_service.database import get_db
 from account_service.repository import TransactionRepository
 from account_service.service import AccountServiceLogic
@@ -13,8 +13,10 @@ def get_account_service(db: Session = Depends(get_db)):
     repo = TransactionRepository(db)
     return AccountServiceLogic(repo)
 
-@router.post("/accounts/{account_id}/transactions", status_code=201)
+@router.post("/accounts/{account_id}/transactions", status_code=201, response_model=APIResponse)
 def apply_transaction(account_id: str, payload: EventPayload, svc: AccountServiceLogic = Depends(get_account_service)):
+    trace_id = trace_id_ctx_var.get()
+    
     if payload.accountId != account_id:
         raise HTTPException(status_code=400, detail="Account ID in path must match payload")
 
@@ -32,16 +34,18 @@ def apply_transaction(account_id: str, payload: EventPayload, svc: AccountServic
     else:
         logger.info(f"Applied transaction {payload.eventId} to account {account_id}")
         
-    return result
+    return APIResponse(success=True, data=result, trace_id=trace_id)
 
-@router.get("/accounts/{account_id}/balance")
+@router.get("/accounts/{account_id}/balance", response_model=APIResponse)
 def get_balance(account_id: str, svc: AccountServiceLogic = Depends(get_account_service)):
+    trace_id = trace_id_ctx_var.get()
     balance = svc.calculate_balance(account_id)
     logger.info(f"Calculated balance for account {account_id}")
-    return {"accountId": account_id, "balance": balance}
+    return APIResponse(success=True, data={"accountId": account_id, "balance": balance}, trace_id=trace_id)
 
-@router.get("/accounts/{account_id}")
+@router.get("/accounts/{account_id}", response_model=APIResponse)
 def get_account_details(account_id: str, svc: AccountServiceLogic = Depends(get_account_service)):
+    trace_id = trace_id_ctx_var.get()
     details = svc.get_account_details(account_id)
     logger.info(f"Retrieved account details for {account_id}")
-    return details
+    return APIResponse(success=True, data=details, trace_id=trace_id)

@@ -1,7 +1,15 @@
 from pydantic import BaseModel, field_validator
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, TypeVar, Generic
 from datetime import datetime
 
+T = TypeVar('T')
+
+class APIResponse(BaseModel, Generic[T]):
+    success: bool
+    data: Optional[T] = None
+    error: Optional[str] = None
+    message: Optional[str] = None
+    trace_id: Optional[str] = None
 class EventPayload(BaseModel):
     eventId: str
     accountId: str

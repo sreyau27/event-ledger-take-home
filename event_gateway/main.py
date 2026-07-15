@@ -31,8 +31,10 @@ async def trace_id_middleware(request: Request, call_next):
     response.headers["X-Trace-Id"] = trace_id
     return response
 
-@app.get("/health")
+from shared.schemas import APIResponse
+
+@app.get("/health", response_model=APIResponse)
 def health_check():
-    return {"status": "up", "service": "event_gateway"}
+    return APIResponse(success=True, data={"status": "up", "service": "event_gateway"})
 
 app.include_router(gateway_router)

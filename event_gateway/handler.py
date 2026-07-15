@@ -7,6 +7,8 @@ from event_gateway.database import get_db
 from event_gateway.repository import EventRepository
 from event_gateway.service import EventGatewayService
 
+from shared.schemas import APIResponse
+
 logger = setup_logger("event_gateway")
 router = APIRouter()
 
@@ -16,20 +18,23 @@ def get_gateway_service(db: Session = Depends(get_db)):
     repo = EventRepository(db)
     return EventGatewayService(repo, http_client)
 
-@router.post("/events", status_code=201)
+@router.post("/events", status_code=201, response_model=APIResponse)
 async def submit_event(payload: EventPayload, svc: EventGatewayService = Depends(get_gateway_service)):
     trace_id = trace_id_ctx_var.get()
     
     result = await svc.process_event(payload, trace_id)
-    return result
+    return APIResponse(success=True, data=result, trace_id=trace_id)
 
-@router.get("/events/{event_id}")
+@router.get("/events/{event_id}", response_model=APIResponse)
 def get_event(event_id: str, svc: EventGatewayService = Depends(get_gateway_service)):
+    trace_id = trace_id_ctx_var.get()
     event = svc.get_event(event_id)
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
-    return event
+    return APIResponse(success=True, data=event, trace_id=trace_id)
 
-@router.get("/events")
+@router.get("/events", response_model=APIResponse)
 def list_events(account: str, svc: EventGatewayService = Depends(get_gateway_service)):
-    return svc.list_events(account)
+    trace_id = trace_id_ctx_var.get()
+    events = svc.list_events(account)
+    return APIResponse(success=True, data=events, trace_id=trace_id)

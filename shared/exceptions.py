@@ -18,6 +18,8 @@ def add_global_exception_handlers(app: FastAPI):
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             content={
+                "success": False,
+                "data": None,
                 "error": "Service Unavailable",
                 "message": "Account Service is down",
                 "trace_id": trace_id
@@ -31,8 +33,10 @@ def add_global_exception_handlers(app: FastAPI):
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content={
+                "success": False,
+                "data": None,
                 "error": "Validation Error",
-                "details": jsonable_encoder(exc.errors()),
+                "message": jsonable_encoder(exc.errors()),
                 "trace_id": trace_id
             },
         )
@@ -44,6 +48,8 @@ def add_global_exception_handlers(app: FastAPI):
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
+                "success": False,
+                "data": None,
                 "error": "Internal Server Error",
                 "message": "An unexpected error occurred.",
                 "trace_id": trace_id
