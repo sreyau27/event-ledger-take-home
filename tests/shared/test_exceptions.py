@@ -1,4 +1,5 @@
 import pytest
+from http import HTTPStatus
 from fastapi import FastAPI, APIRouter
 from fastapi.testclient import TestClient
 from shared.exceptions import add_global_exception_handlers, AccountServiceUnavailable
@@ -28,7 +29,7 @@ client = TestClient(app, raise_server_exceptions=False)
 
 def test_account_service_unavailable_handler():
     response = client.get("/error/service-unavailable")
-    assert response.status_code == 503
+    assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
     json_resp = response.json()
     assert json_resp["success"] is False
     assert json_resp["error"] == "Service Unavailable"
@@ -36,7 +37,7 @@ def test_account_service_unavailable_handler():
 
 def test_validation_exception_handler():
     response = client.post("/error/validation", json={"wrong_key": "val"})
-    assert response.status_code == 422
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     json_resp = response.json()
     assert json_resp["success"] is False
     assert json_resp["error"] == "Validation Error"
@@ -44,7 +45,7 @@ def test_validation_exception_handler():
 
 def test_global_exception_handler():
     response = client.get("/error/unhandled")
-    assert response.status_code == 500
+    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
     json_resp = response.json()
     assert json_resp["success"] is False
     assert json_resp["error"] == "Internal Server Error"

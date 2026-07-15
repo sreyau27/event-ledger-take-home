@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request
+from http import HTTPStatus
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.encoders import jsonable_encoder
@@ -16,7 +17,7 @@ def add_global_exception_handlers(app: FastAPI):
         trace_id = trace_id_ctx_var.get()
         logger.error(f"Account service is currently unavailable. Circuit breaker open / retries exhausted.")
         return JSONResponse(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            status_code=HTTPStatus.SERVICE_UNAVAILABLE,
             content={
                 "success": False,
                 "data": None,
@@ -31,7 +32,7 @@ def add_global_exception_handlers(app: FastAPI):
         trace_id = trace_id_ctx_var.get()
         logger.error(f"Validation error: {exc.errors()} | body: {exc.body}")
         return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             content={
                 "success": False,
                 "data": None,
@@ -46,7 +47,7 @@ def add_global_exception_handlers(app: FastAPI):
         trace_id = trace_id_ctx_var.get()
         logger.error(f"Unhandled exception: {str(exc)}\n{traceback.format_exc()}")
         return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
             content={
                 "success": False,
                 "data": None,

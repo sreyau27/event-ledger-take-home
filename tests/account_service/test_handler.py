@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+from http import HTTPStatus
 from account_service.main import app
 import pytest
 from unittest.mock import Mock
@@ -22,7 +23,7 @@ def test_apply_transaction_success():
     }
     
     response = client.post("/accounts/acc-1/transactions", json=payload)
-    assert response.status_code == 201
+    assert response.status_code == HTTPStatus.CREATED
     assert response.json()["success"] is True
     assert response.json()["data"]["eventId"] == "evt-1"
     
@@ -39,7 +40,7 @@ def test_apply_transaction_mismatch_account():
     }
     
     response = client.post("/accounts/acc-1/transactions", json=payload)
-    assert response.status_code == 400
+    assert response.status_code == HTTPStatus.BAD_REQUEST
     assert response.json()["detail"] == "Account ID in path must match payload"
 
 def test_get_balance():
@@ -49,7 +50,7 @@ def test_get_balance():
     app.dependency_overrides[get_account_service] = lambda: svc_mock
     
     response = client.get("/accounts/acc-1/balance")
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     assert response.json()["success"] is True
     assert response.json()["data"]["balance"] == 250.0
     
@@ -62,7 +63,7 @@ def test_get_account_details():
     app.dependency_overrides[get_account_service] = lambda: svc_mock
     
     response = client.get("/accounts/acc-1")
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     assert response.json()["success"] is True
     assert response.json()["data"]["accountId"] == "acc-1"
     

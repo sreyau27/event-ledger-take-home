@@ -1,4 +1,5 @@
 import pytest
+from http import HTTPStatus
 from fastapi.testclient import TestClient
 from event_gateway.main import app
 from unittest.mock import AsyncMock, Mock
@@ -8,7 +9,7 @@ client = TestClient(app)
 
 def test_health_check():
     response = client.get("/health")
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     assert response.json()["success"] is True
     assert response.json()["data"] == {"status": "up", "service": "event_gateway"}
 
@@ -29,7 +30,7 @@ def test_submit_event_success():
     }
     
     response = client.post("/events", json=payload)
-    assert response.status_code == 201
+    assert response.status_code == HTTPStatus.CREATED
     assert response.json()["success"] is True
     assert response.json()["data"]["eventId"] == "evt-1"
     app.dependency_overrides.clear()
@@ -51,7 +52,7 @@ def test_submit_event_service_unavailable():
     }
     
     response = client.post("/events", json=payload)
-    assert response.status_code == 503
+    assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
     assert response.json()["success"] is False
     assert response.json()["error"] == "Service Unavailable"
     app.dependency_overrides.clear()
@@ -67,7 +68,7 @@ def test_invalid_payload():
     }
     
     response = client.post("/events", json=payload)
-    assert response.status_code == 422
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     assert response.json()["success"] is False
     assert response.json()["error"] == "Validation Error"
 
@@ -79,14 +80,14 @@ def test_get_event():
     app.dependency_overrides[get_gateway_service] = lambda: svc_mock
     
     response = client.get("/events/evt-1")
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     assert response.json()["success"] is True
     assert response.json()["data"]["eventId"] == "evt-1"
     
     # Not found
     svc_mock.get_event.return_value = None
     response_not_found = client.get("/events/evt-2")
-    assert response_not_found.status_code == 404
+    assert response_not_found.status_code == HTTPStatus.NOT_FOUND
     
     app.dependency_overrides.clear()
 
@@ -98,7 +99,7 @@ def test_list_events():
     app.dependency_overrides[get_gateway_service] = lambda: svc_mock
     
     response = client.get("/events?account=acc-1")
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     assert response.json()["success"] is True
     assert len(response.json()["data"]) == 2
     app.dependency_overrides.clear()

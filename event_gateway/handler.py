@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from http import HTTPStatus
 from sqlalchemy.orm import Session
 import httpx
 from shared.schemas import EventPayload
@@ -22,7 +23,7 @@ def get_gateway_service(db: Session = Depends(get_db)):
     repo = EventRepository(db)
     return EventGatewayService(repo, http_client)
 
-@router.post("/events", status_code=201, response_model=APIResponse)
+@router.post("/events", status_code=HTTPStatus.CREATED, response_model=APIResponse)
 async def submit_event(payload: EventPayload, svc: EventGatewayService = Depends(get_gateway_service)):
     trace_id = trace_id_ctx_var.get()
     
@@ -34,7 +35,7 @@ def get_event(event_id: str, svc: EventGatewayService = Depends(get_gateway_serv
     trace_id = trace_id_ctx_var.get()
     event = svc.get_event(event_id)
     if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Event not found")
     return APIResponse(success=True, data=event, trace_id=trace_id)
 
 @router.get("/events", response_model=APIResponse)
