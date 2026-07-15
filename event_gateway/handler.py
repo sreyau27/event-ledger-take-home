@@ -5,7 +5,7 @@ from shared.schemas import EventPayload
 from shared.logging import setup_logger, trace_id_ctx_var
 from event_gateway.database import get_db
 from event_gateway.repository import EventRepository
-from event_gateway.service import EventGatewayService, AccountServiceUnavailable
+from event_gateway.service import EventGatewayService
 
 logger = setup_logger("event_gateway")
 router = APIRouter()
@@ -20,12 +20,8 @@ def get_gateway_service(db: Session = Depends(get_db)):
 async def submit_event(payload: EventPayload, svc: EventGatewayService = Depends(get_gateway_service)):
     trace_id = trace_id_ctx_var.get()
     
-    try:
-        result = await svc.process_event(payload, trace_id)
-        return result
-    except AccountServiceUnavailable:
-        logger.error("Account service is currently unavailable. Circuit breaker open / retries exhausted.")
-        raise HTTPException(status_code=503, detail="Service Unavailable: Account Service is down")
+    result = await svc.process_event(payload, trace_id)
+    return result
 
 @router.get("/events/{event_id}")
 def get_event(event_id: str, svc: EventGatewayService = Depends(get_gateway_service)):

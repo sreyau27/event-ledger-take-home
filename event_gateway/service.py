@@ -6,13 +6,11 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 
 from shared.schemas import EventPayload
 from shared.logging import setup_logger
+from shared.exceptions import AccountServiceUnavailable
 from event_gateway.repository import EventRepository
 
 logger = setup_logger("event_gateway")
 ACCOUNT_SERVICE_URL = os.getenv("ACCOUNT_SERVICE_URL", "http://localhost:8001")
-
-class AccountServiceUnavailable(Exception):
-    pass
 
 class EventGatewayService:
     def __init__(self, repo: EventRepository, http_client: httpx.AsyncClient):
@@ -30,7 +28,7 @@ class EventGatewayService:
         try:
             response = await self.http_client.post(
                 f"{ACCOUNT_SERVICE_URL}/accounts/{payload.accountId}/transactions",
-                json=payload.model_dump(),
+                json=payload.model_dump(mode='json'),
                 headers={"X-Trace-Id": trace_id}
             )
             response.raise_for_status()
@@ -52,15 +50,12 @@ class EventGatewayService:
 
         await self.call_account_service(payload, trace_id)
         
-        ts = payload.eventTimestamp.replace("Z", "+00:00")
-        event_time = datetime.fromisoformat(ts)
-        
         self.repo.create(
             event_id=payload.eventId,
             account_id=payload.accountId,
             payload_json=payload.model_dump_json(),
             received_at=datetime.now(timezone.utc),
-            event_timestamp=event_time
+            event_timestamp=payload.eventTimestamp
         )
         logger.info(f"Event {payload.eventId} processed and saved.")
         return {"status": "success", "eventId": payload.eventId}

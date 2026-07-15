@@ -7,7 +7,23 @@ import traceback
 
 logger = setup_logger("global_exception_handler")
 
+class AccountServiceUnavailable(Exception):
+    pass
+
 def add_global_exception_handlers(app: FastAPI):
+    @app.exception_handler(AccountServiceUnavailable)
+    async def account_service_unavailable_handler(request: Request, exc: AccountServiceUnavailable):
+        trace_id = trace_id_ctx_var.get()
+        logger.error(f"Account service is currently unavailable. Circuit breaker open / retries exhausted.")
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "error": "Service Unavailable",
+                "message": "Account Service is down",
+                "trace_id": trace_id
+            },
+        )
+
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError):
         trace_id = trace_id_ctx_var.get()

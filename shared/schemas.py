@@ -1,5 +1,6 @@
 from pydantic import BaseModel, field_validator
 from typing import Optional, Dict, Any
+from datetime import datetime
 
 class EventPayload(BaseModel):
     eventId: str
@@ -7,7 +8,7 @@ class EventPayload(BaseModel):
     type: str
     amount: float
     currency: str
-    eventTimestamp: str  # ISO 8601 string
+    eventTimestamp: datetime
     metadata: Optional[Dict[str, Any]] = None
 
     @field_validator('type')

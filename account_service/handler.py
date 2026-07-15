@@ -19,19 +19,13 @@ def apply_transaction(account_id: str, payload: EventPayload, svc: AccountServic
     if payload.accountId != account_id:
         raise HTTPException(status_code=400, detail="Account ID in path must match payload")
 
-    try:
-        ts = payload.eventTimestamp.replace("Z", "+00:00")
-        event_time = datetime.fromisoformat(ts)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid eventTimestamp format")
-
     result = svc.process_transaction(
         event_id=payload.eventId,
         account_id=account_id,
         tx_type=payload.type,
         amount=payload.amount,
         currency=payload.currency,
-        event_time=event_time
+        event_time=payload.eventTimestamp
     )
     
     if result["status"] == "duplicate":

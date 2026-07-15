@@ -54,7 +54,8 @@ def test_submit_event_service_unavailable(mock_call):
     
     response = client.post("/events", json=payload)
     assert response.status_code == 503
-    assert "Service Unavailable" in response.json()["detail"]
+    assert response.json()["error"] == "Service Unavailable"
+    assert response.json()["message"] == "Account Service is down"
 
 def test_invalid_payload():
     payload = {
