@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import httpx
 from shared.schemas import EventPayload
@@ -17,7 +17,7 @@ def get_gateway_service(db: Session = Depends(get_db)):
     return EventGatewayService(repo, http_client)
 
 @router.post("/events", status_code=201)
-async def submit_event(payload: EventPayload, request: Request, svc: EventGatewayService = Depends(get_gateway_service)):
+async def submit_event(payload: EventPayload, svc: EventGatewayService = Depends(get_gateway_service)):
     trace_id = trace_id_ctx_var.get()
     
     try:
