@@ -24,4 +24,3 @@ async def trace_id_middleware(request: Request, call_next):
     return response
 
 
-app.include_router(account_router)
