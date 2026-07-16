@@ -59,8 +59,13 @@ All endpoints across the system adhere to a single, standardized JSON response s
 
 2. Create and activate a virtual environment:
    ```bash
+   # On macOS and Linux:
+   python3 -m venv venv
+   source venv/bin/activate
+   
+   # On Windows:
    python -m venv venv
-   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+   venv\Scripts\activate
    ```
 
 3. Install dependencies:
@@ -108,6 +113,10 @@ The project includes an extensive, modular test suite with **31 test cases** ach
 
 To run the entire test suite, simply execute:
 ```bash
+# On macOS and Linux:
+python3 -m pytest
+
+# On Windows:
 python -m pytest
 ```
 
