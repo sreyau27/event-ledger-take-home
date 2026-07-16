@@ -38,11 +38,3 @@ def health_check():
     return APIResponse(success=True, data={"status": "up", "service": "event_gateway"})
 
 app.include_router(gateway_router)
-
-
-In detail python coding explanation
-how to explain to interviewr about this project in detail
-document for how do i setup the project from scratch to explin to iuterviewer
-    how do i test one by one api to understand teh flow - developer
-
-for mac setup instructions
